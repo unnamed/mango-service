@@ -10,9 +10,10 @@ To build `mango-service`, just use `./go build`. Then use the built executable:
 ```
 The executable accepts multiple flags
 
-| Option       | Default Value          | Description                                      |
-|--------------|------------------------|--------------------------------------------------|
-| `port`       | `2069`                 | The HTTP server port                             |
-| `dir`        | `data`                 | The directory that will contain the stored files |
-| `size-limit` | `5000000` *(5 MB)*     | The file size limit (in bytes)                   |
-| `lifetime`   | `300000` *(5 minutes)* | The file lifetime (in milliseconds)              |
+| Option        | Default Value          | Description                                                                                                               |
+|---------------|------------------------|---------------------------------------------------------------------------------------------------------------------------|
+| `port`        | `2069`                 | The HTTP server port                                                                                                      |
+| `dir`         | `data`                 | The directory that will contain the stored files                                                                          |
+| `size-limit`  | `5000000` *(5 MB)*     | The file size limit (in bytes)                                                                                            |
+| `lifetime`    | `300000` *(5 minutes)* | The file lifetime (in milliseconds)                                                                                       |
+| `trust-proxy` | `false`                | Determines whether we should trust the `X-Forwarded-For` HTTP Header, enable if running behind a reverse-proxy like Nginx |
