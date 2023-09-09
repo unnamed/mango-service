@@ -4,7 +4,7 @@ import "fmt"
 
 func main() {
 	// parse configuration from command line arguments
-	config := *parseConfiguration()
+	config := parseConfiguration()
 
 	// create local file store
 	store := &LocalFileStore{directory: config.Directory}

@@ -10,7 +10,7 @@ type ServiceConfiguration struct {
 	TrustProxy bool
 }
 
-func parseConfiguration() *ServiceConfiguration {
+func parseConfiguration() ServiceConfiguration {
 	// parse
 	port := flag.String("port", "2069", "Port to use for HTTP")
 	directory := flag.String("dir", "data", "The directory where to store the files")
@@ -26,5 +26,5 @@ func parseConfiguration() *ServiceConfiguration {
 	config.SizeLimit = *sizeLimit
 	config.Lifetime = *lifetime
 	config.TrustProxy = *trustProxy
-	return &config
+	return config
 }
