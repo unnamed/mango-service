@@ -1,0 +1,10 @@
+# ide settings
+/.idea
+/*.iml
+
+# output
+/mango.exe
+/*.exe
+
+# app directories
+/data
