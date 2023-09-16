@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 type FileStore interface {
@@ -23,16 +24,49 @@ type LocalFileStore struct {
 	directory string
 }
 
+// Gets the clean path for the given file name, verifies that the
+// given name is the name of a single file and does not contain
+// anything like "..", ".", "/", for security reasons
+func cleanPath(directory string, name string) (string, error) {
+	path := filepath.Join(directory, name)
+	path = filepath.Clean(path)
+
+	if !strings.HasPrefix(path, directory) {
+		// if path does not start with local directory,
+		// it probably contained "..", and thus is invalid
+		return "", fmt.Errorf("invalid file name '%s' (skipped prefix)", name)
+	}
+
+	_, filename := filepath.Split(path)
+	if filename != name {
+		// makes sure that 'name' did not contain file separators
+		return "", fmt.Errorf("invalid file name '%s' (unexpected args)", name)
+	}
+
+	return path, nil
+}
+
 func (local *LocalFileStore) Exists(name string) bool {
-	path := filepath.Join(local.directory, name)
-	if _, err := os.Stat(path); os.IsNotExist(err) {
+	path, err := cleanPath(local.directory, name)
+	if err != nil {
+		// invalid file names don't exist.
+		return false
+	}
+	if _, err = os.Stat(path); os.IsNotExist(err) {
 		return false
 	}
 	return true
 }
 
 func (local *LocalFileStore) Create(name string, data io.Reader) error {
+
 	dir := local.directory
+	path, err := cleanPath(dir, name)
+
+	if err != nil {
+		// invalid file name, don't continue
+		return err
+	}
 
 	// create directory if it doesn't exist
 	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
@@ -40,7 +74,6 @@ func (local *LocalFileStore) Create(name string, data io.Reader) error {
 	}
 
 	// fail to create already existent files
-	path := filepath.Join(dir, name)
 	if _, err := os.Stat(path); err == nil {
 		return fmt.Errorf("can't create '%s', it already exists", name)
 	} else if !os.IsNotExist(err) {
@@ -63,10 +96,15 @@ func (local *LocalFileStore) Create(name string, data io.Reader) error {
 
 func (local *LocalFileStore) Read(name string) (*os.File, error) {
 	dir := local.directory
-	path := filepath.Join(dir, name)
+	path, err := cleanPath(dir, name)
+
+	if err != nil {
+		// invalid file name
+		return nil, err
+	}
 
 	// check if file doesn't exist
-	if _, err := os.Stat(path); os.IsNotExist(err) {
+	if _, err = os.Stat(path); os.IsNotExist(err) {
 		return nil, fmt.Errorf("file with name '%s' doesn't exist", name)
 	}
 
@@ -97,8 +135,12 @@ func (local *LocalFileStore) List() ([]string, error) {
 }
 
 func (local *LocalFileStore) Delete(name string) (bool, error) {
+	path, err := cleanPath(local.directory, name)
+	if err != nil {
+		// invalid file name
+		return false, err
+	}
 	if local.Exists(name) {
-		path := filepath.Join(local.directory, name)
 		return true, os.Remove(path)
 	} else {
 		return false, nil
